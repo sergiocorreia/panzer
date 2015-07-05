@@ -412,6 +412,13 @@ class Document(object):
             stderr = str()
             try:
                 entry['status'] = const.RUNNING
+
+                # Windows cannot directly call .py files
+                # http://stackoverflow.com/questions/25651990/oserror-winerror-193-1-is-not-a-valid-win32-application
+                # Soln: call first sys.executable (or 'py.exe', 'python.exe', etc.)
+                if os.name=='nt' and command[0].endswith('.py'):
+                    command.insert(0, sys.executable)
+
                 process = subprocess.Popen(command,
                                            stdin=subprocess.PIPE,
                                            stderr=subprocess.PIPE)
@@ -477,6 +484,8 @@ class Document(object):
                     in_pipe = self.output
                 # Set up outgoing pipe in case of failure
                 out_pipe = in_pipe
+                if os.name=='nt' and command[0].endswith('.py'):
+                    command.insert(0, sys.executable)
                 process = subprocess.Popen(command,
                                            stderr=subprocess.PIPE,
                                            stdin=subprocess.PIPE,
